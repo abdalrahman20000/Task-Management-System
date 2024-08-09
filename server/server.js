@@ -1,23 +1,16 @@
-const express = require('express');
-const axios = require('axios');
+require("dotenv").config();
+const express = require("express");
+const body_parser = require("body-parser");
+const user_routers = require("./routers/user_routers");
 const cors = require("cors");
+
+
 const app = express();
-const port = 3000;
-
-// app.use(cors());
 app.use(cors());
+app.use(body_parser.json());
 
+// console.log("e log 1");
+app.use("/db/users",user_routers);
 
-
-app.get('/api/products', async (req, res) => {
-    try {
-      const response = await axios.get('https://fakestoreapi.com/products');
-      res.json(response.data);
-    } catch (error) {
-      res.status(500).send('Error fetching products');
-    }
-  });
-
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+const PORT = 5000;
+app.listen(PORT,() =>{console.log(`server running on port ${PORT}`)});

@@ -1,6 +1,7 @@
 
-import { useState,sessionStorage } from "react"
+import { useState, sessionStorage } from "react"
 import { useNavigate } from "react-router-dom";
+import axios from "axios"
 
 function Signup() {
 
@@ -11,8 +12,27 @@ function Signup() {
     const [pass, set_pass] = useState("");
 
 
-    function handel_signup(e) {
+    async function handel_signup(e) {
         e.preventDefault();
+
+        try {
+            // alert("error");
+            // console.log( email , pass , name );
+            const response = await axios.post('http://localhost:5000/db/users/register', { email , pass , name });
+            localStorage.setItem("token", response.data.token);
+            alert("Registeration successfully !!!");
+
+            
+
+            navigate("/log-in");
+        }
+        catch (error) {
+            // Log the error to the console for debugging
+            console.error('Registration failed:', error);
+
+            // Notify the user of the failure
+            alert("Registration failed");
+        }
 
 
         let user = {
@@ -21,9 +41,11 @@ function Signup() {
             pass: pass
         };
 
-        sessionStorage.setItem("use_data", JSON.stringify(user));
+        console.log(user);
 
-        alert("Signed successfully!!!");
+        // sessionStorage.setItem("use_data", JSON.stringify(user));
+
+        // alert("Signed successfully!!!");
 
         set_name("");
         set_email("");
@@ -31,7 +53,7 @@ function Signup() {
 
         // sessionStorage.setItem("user", true);
 
-        navigate("/");
+        
     }
 
     return (

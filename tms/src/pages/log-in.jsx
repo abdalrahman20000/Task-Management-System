@@ -1,6 +1,7 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 
 function Signup() {
 
@@ -10,8 +11,24 @@ function Signup() {
     const [pass, set_pass] = useState("");
 
 
-    function handel_signup(e) {
+    async function handel_signup(e) {
         e.preventDefault();
+
+
+        
+        try {
+            const response = await axios.post('http://localhost:5000/db/users/log-in', { email, pass });
+            localStorage.setItem("token", response.data.token);
+            alert("Log in successfully !!!");
+
+            sessionStorage.setItem("eid",email);
+
+
+            navigate("/");
+        }
+        catch (error) {
+            alert("Log in failed", error);
+        }
 
 
         let user = {
@@ -21,14 +38,14 @@ function Signup() {
 
         sessionStorage.setItem("use_data", JSON.stringify(user));
 
-        alert("Signed successfully!!!");
+        // alert("Signed successfully!!!");
 
         set_email("");
         set_pass("");
 
         // sessionStorage.setItem("signed", true);
 
-        navigate("/");
+        
     }
 
     return (

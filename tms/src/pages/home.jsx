@@ -1,39 +1,90 @@
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom";
 import { Trash, PencilOff } from 'lucide-react';
+import axios from "axios"
 
 function Home() {
 
 
     const navigate = useNavigate();
 
-    const [name, set_name] = useState("");
-    const [email, set_email] = useState("");
-    const [pass, set_pass] = useState("");
+    const [task_name, set_title] = useState("");
+    const [task_description, set_desc] = useState("");
+    const [user_id, set_user_id] = useState(sessionStorage.getItem("eid"));
+    const [task_id, set_task_id] = useState(sessionStorage.getItem("eid"));
+    const [is_deleted, set_is_deleted] = useState(false);
+    const [tasks, set_taks] = useState([]);
+    const [update_button, set_update_button] = useState(false);
+
+    // const [t_desc, set_desc] = useState("");
+
+    useEffect(() => {
+        axios.get(`http://localhost:5000/db/users/tasks?uid=${user_id}`)
+            .then((res) => { set_taks(res.data) })
+            .catch((err) => console.log(err))
 
 
-    function handel_signup(e) {
+    }, []);
+
+    console.log(tasks);
+    // console.log(user_id);
+
+
+
+
+    async function handel_add(e) {
         e.preventDefault();
 
+        const user_id = sessionStorage.getItem("eid");
 
-        let user = {
-            name: name,
-            email: email,
-            pass: pass
-        };
 
-        sessionStorage.setItem("use_data", JSON.stringify(user));
+        // console.log(eid);
 
-        alert("Signed successfully!!!");
+        try {
+            const response = await axios.post("http://localhost:5000/db/users/tasks", { task_name, task_description, user_id, is_deleted });
 
-        set_name("");
-        set_email("");
-        set_pass("");
+            alert("Task added successfully");
+        } catch (err) {
+            console.error("Failed to add task:", err.response ? err.response.data : err.message);
+            alert("Failed to add task");
+        }
 
-        sessionStorage.setItem("signed", true);
+        alert(task_name, task_description, user_id, is_deleted);
 
-        navigate("/");
+
+        // let task = {
+        //     title: t_title,
+        //     desc: t_desc,
+        // };
+
+
+        set_title("");
+        set_desc("");
+        set_is_deleted("");
+
+    }
+
+
+    async function update_handle(tid, task_u_name, task_u_description) {
+
+        // setFormVisible(true);
+
+        axios.put(`http://localhost:5000/db/users/tasks?uid=${user_id}&tid=${task_id}&tname=${task_name}&tdesc=${task_description}`)
+
+        alert("Task Updated !!!" + task_id);
+
+        set_update_button(false)
+    }
+
+
+    async function delete_handle(tid) {
+
+        set_is_deleted(true);
+
+        axios.patch(`http://localhost:5000/db/users/tasks?uid=${user_id}&tid=${tid}&is_deleted=${false}`)
+
+        alert("Task Deleted !!!");
     }
 
 
@@ -43,53 +94,67 @@ function Home() {
             <main className='min-h-[77vh]'>
                 <div className="tasks flex justify-center items-center flex-wrap">
 
-                    <div className="task flex justify-between items-center bg-[#f7ff65] m-4 p-4 rounded-md  w-[45%]">
-                        <input className='w-5 h-5 border-4 border-[#000000]' type="checkbox" name="" id="" />
+                    {tasks.map((task) => {
+                        return (
+                            <div key={task} className="task flex justify-between items-center bg-[#f7ff65] m-4 p-4 rounded-md  w-[45%]">
+                                <input className='w-5 h-5 border-4 border-[#000000]' type="checkbox" name="" id="" />
 
-                        <div className="">
-                            <h3 className='text-xl font-semibold'>Task title</h3>
-                            <h4 className='text-md'>Task description Lorem ipsum dolor sit amet, consectetur adipisicing elit.</h4>
+                                <div className="">
+                                    <h3 className='text-xl font-semibold'>{task.task_name}</h3>
+                                    <h4 className='text-md'>{task.task_description}</h4>
 
-                        </div>
+                                </div>
 
-                        <div className="flex items-center">
-                            <span className='m-2 hover:text-[#98ff5c]'><PencilOff /></span>
-                            <span className='m-2 hover:text-[#ff5c5c]'><Trash /></span>
-                        </div>
-                    </div>
+                                <div className="flex items-center">
+                                    <span className='m-2 hover:text-[#98ff5c]' onClick={() => { set_task_id(task.task_id), set_update_button(true) }}><PencilOff /></span>
+                                    <span className='m-2 hover:text-[#ff5c5c]' onClick={() => { delete_handle(task.task_id) }}><Trash /></span>
+                                </div>
+                            </div>
+                        )
+
+                    })}
 
                 </div>
 
 
-                <div className="add flex justify-center items-center ">
-                    <form className="flex-col justify-center items-center w-[50%] bg-[#f7ff65] rounded-md p-10" onSubmit={handel_signup} id="sign_form">
+                <div className="add flex justify-center items-center  m-10">
+                    <form className="flex-col justify-center items-center w-[50%] bg-[#f7ff65] rounded-md p-10" id="sign_form">
                         <label htmlFor="">Title :
                             <br />
                             < input className="h-10 w-[95%] bg-[#ffffff] p-3 mx-2 my-4 rounded-md" type="text"
                                 id="name"
-                                value={name}
-                                onChange={(e) => { set_name(e.target.value) }}
+                                value={task_name}
+                                onChange={(e) => { set_title(e.target.value) }}
                                 required
                             />
                         </label>
 
                         <label htmlFor="">Description :
                             <br />
-                            < input className="h-10 w-[95%] bg-[#ffffff] p-3 mx-2 my-4 rounded-md" type="email"
+                            < input className="h-10 w-[95%] bg-[#ffffff] p-3 mx-2 my-4 rounded-md" type="text"
                                 id="email"
-                                value={email}
-                                onChange={(e) => { set_email(e.target.value) }}
+                                value={task_description}
+                                onChange={(e) => { set_desc(e.target.value) }}
                                 required
 
                             />
                         </label>
 
                         <div className=" w-[100%] flex justify-center items-center">
-                            <button className="bg-[#ffffff] m-4 px-7 py-2 rounded-md text-[#000000] w-[50%] " type="submit">Add Task</button>
+                            {!update_button
+                                ? <button onClick={ handel_add} className="bg-[#ffffff] m-4 px-7 py-2 rounded-md text-[#000000] w-[50%] " type="submit">Add Task</button>
+                                : <button onClick={() => { update_handle() }} className="bg-[#ffffff] m-4 px-7 py-2 rounded-md text-[#000000] w-[50%] " type="submit">Update Task</button>
+                            }
+
+
                         </div>
                     </form>
 
                 </div>
+
+
+
+
             </main>
         </>
 
